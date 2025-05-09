@@ -196,3 +196,196 @@ class User extends Authenticatable
 }
 
 ```
+
+## **Step: 5 Migration**
+```bash
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->string('Role')->default('user');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('sessions');
+    }
+};
+```
+
+```bash
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('password_resets', function (Blueprint $table) {
+            $table->id();
+            $table->string('email')->nullable();
+            $table->string('token')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('password_resets');
+    }
+};
+```
+
+**Step: 5 This page is bringing data from the Code Request Password Recovery Form page.**
+
+```bash
+Route::get('/recover-password', [HomeController::class, 'recoverpasswordLoad'])->name('recoverpasswordLoad');
+```
+
+```bash
+    public function recoverpasswordLoad(Request $request)
+    {
+        // Fetch the first record matching the token
+        $resetData = PasswordReset::where('token', $request->token)->first();
+
+
+        if ($resetData) {
+            $user = User::where('email', $resetData->email)->first();
+
+            if ($user->id) {
+                $userID = $user->id;
+                return view('passwordrecover', compact('userID', 'user'));
+            } else {
+
+                return redirect()->route('account')->with('error', 'No user found with this email!');
+            }
+        } else {
+            return redirect()->route('account')->with('error', 'token expired or invalid forget again!');
+        }
+    }
+```
+
+**passwordrecover.blade.php**
+```bash
+<div class="formbold-form-wrapper card" style="padding: 20px">
+    <div class="formbold-form-title">
+        <h3>Create New Password!</h3>
+
+    </div>
+
+    @error('error')
+        <p class="text-danger">{{ $error }}</p>
+    @enderror
+
+    <form action="{{ route('recoverpassword') }}" method="post">
+        @csrf
+
+        @if ($user)
+            <input type="text" name="id" value="{{ $userID }}">
+
+            <input type="password" name="password" id="" placeholder="New password"
+                class="formbold-form-input" />
+
+            @error('password')
+                <span class="text-danger">{{ $message }}</span>
+            @enderror
+
+            <br>
+
+            <input type="password" name="password_confirmation" id="" placeholder="Confirm password"
+                class="formbold-form-input mt-4" />
+
+            @error('password_confirmation')
+                <span class="text-danger">{{ $message }}</span>
+            @enderror
+
+            <br>
+
+            <input class="formbold-btn mt-4" type="submit" value="Submit">
+        @else
+            <p class="text-danger">User not found or invalid token.</p>
+        @endif
+    </form>
+</div>
+
+<br>
+```
+
+```bash
+Route::post('/reset-password', [HomeController::class, 'recoverpassword'])->name('recoverpassword');
+```
+
+```bash
+ public function recoverpassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string|min:6|confirmed',
+            'id' => 'required',
+        ]);
+
+        try {
+
+            $user = User::find($request->id);
+
+            $user->password = Hash::make($request->password);
+            $user->save();
+
+
+            PasswordReset::where('email', $user->email)->delete();
+
+            session(['userEmail' => $user->email]);
+
+            return redirect()->route('account')->with('success', 'Password updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+```
+
