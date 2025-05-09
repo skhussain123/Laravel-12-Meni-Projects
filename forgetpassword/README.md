@@ -59,6 +59,23 @@ Route::post('/post-forgot-password', [HomeController::class, 'postForgetPassword
 
 
 ```bash
+use App\Mail\ExampleMail;
+use App\Mail\User\RegVerifyMail;
+use App\Mail\UserRegl;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VerifyMail;
+use App\Models\PasswordReset;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+```
+
+```bash
  public function postForgetPassword(Request $request)
     {
         $request->validate([
