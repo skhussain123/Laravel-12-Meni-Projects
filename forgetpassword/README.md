@@ -115,4 +115,84 @@ use Illuminate\Support\Str;
             return redirect()->back()->with('error', 'Email not found!');
         }
     }
-    ```
+```
+
+## **Step: 4: Models**
+```bash
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class PasswordReset extends Model
+{
+    protected $table = 'password_resets';
+
+    public $timestamps = false;
+
+    protected $primaryKey = 'email';  // You're using email as primary key
+    public $incrementing = false;     // Email is not incrementing
+    protected $keyType = 'string';    // Email is a string
+
+    protected $fillable = [
+        'email',
+        'token',
+        'created_at',
+        'updated_at',
+    ];
+}
+```
+
+```bash
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'Role'
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+}
+
+```
