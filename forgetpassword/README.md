@@ -1,6 +1,6 @@
 # Forget Password using Email
 
-## ** Step: 1**
+## **Step: 1**
 
 Yes, that is the URL that will take the user to the forget page.
 ```bash
@@ -14,7 +14,7 @@ Route::get('/forgot-password', [HomeController::class, 'forgetPassword'])->name(
     }
 ```
 
-## ** Step: 2 forget-password.blade.php**
+## **Step: 2 forget-password.blade.php**
 This is the page where the forget password form is.
 
 ```bash
@@ -52,7 +52,7 @@ This is the page where the forget password form is.
     </div>
 ```
 
-## ** Step: 3**
+## **Step: 3**
 ```bash
 Route::post('/post-forgot-password', [HomeController::class, 'postForgetPassword'])->name('post-forgot-password');
 ```
