@@ -17,16 +17,16 @@ http://127.0.0.1:8000/    home url
 http://127.0.0.1:8000/github/callback     redirect url
 
 --------------------------------------------------
-client      Ov23liiwV1nNGVvJKox0
-secret      2194cd97ab6322068116082ad219b0ebba3d1e95
+client      xxxxxxxxxxxxxxxxxxxx
+secret      xxxxxxxxxxxxxxxxxxxx
 
 -------------------------------------------------
 composer require laravel/socialite
 
 ------------------------------------
 set .env file 
-GITHUB_CLIENT_ID=Ov23liiwV1nNGVvJKox0
-GITHUB_CLIENT_SECRET=2194cd97ab6322068116082ad219b0ebba3d1e95
+GITHUB_CLIENT_ID=xxxxxxxxxxxxxxxxxxxx
+GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxx
 GITHUB_REDIRECT_URI=http://127.0.0.1:8000/github/callback
 
 -----------------------------------
@@ -62,12 +62,6 @@ class LoginController extends Controller
 
 
     public function redirectToProvider()
-    {
-        return Socialite::driver('github')->redirect();
-    }
-
-    
- public function redirectToProvider()
     {
         return Socialite::driver('github')->redirect();
     }
