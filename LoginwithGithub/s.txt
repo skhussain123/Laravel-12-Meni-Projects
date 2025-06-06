@@ -42,8 +42,10 @@ config/service.php
 
 -----------------------------------------
 
-Route::get('login/github', [HomeController::class, 'redirectToProvider'])->name('github.login');
+Route::get('/', [HomeController::class, 'index'])->name('homePage');
+Route::get('/login/github', [HomeController::class, 'redirectToProvider'])->name('github.login');
 Route::get('login/github/callback', [HomeController::class, 'handleProviderCallback']);
+
 
 
 
@@ -60,6 +62,11 @@ use Laravel\Socialite\Facades\Socialite;
 class LoginController extends Controller
 {
 
+ public function index()
+    {
+        return view('welcome');
+    }
+
 
     public function redirectToProvider()
     {
@@ -72,32 +79,119 @@ class LoginController extends Controller
         $githubUser = Socialite::driver('github')->user();
 
 
+        $avatarUrl = $githubUser->avatar;
+
+
         // Find or create the user
         $user = User::updateOrCreate(
             [
-                'name' => $githubUser->getName() ?? $githubUser->getNickname(),
                 'email' => $githubUser->getEmail(),
+
+            ],
+            [
+                'name' => $githubUser->getName() ?? $githubUser->getNickname(),
                 'github_id' => $githubUser->getId(),
                 'password' => bcrypt(str()->random(24)),
-
-
+                'Pro_Url' => $avatarUrl,
 
             ]
+
         );
 
 
-        return redirect()->intended('/'); // Redirect to the homepage or desired page
+        session(['user' => $user]);
+        session()->flash('success', 'You have successfully logged in with GitHub!');
+
+        return view('welcome', compact('user'));
     }
+
+
 }
 
 
 
-
-
-
 ------------------------------------------------------------
+Welcome.blade.php
+-----------------------------------------------------------
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login with GitHub</title>
+    <style>
+        .github-btn {
+            display: flex;
+            align-items: center;
+            background-color: #24292e;
+            color: white;
+            padding: 12px 20px;
+            width: 200px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .github-btn:hover {
+            background-color: #333;
+        }
+
+        .github-btn svg {
+            height: 20px;
+            width: 20px;
+            margin-right: 10px;
+            fill: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a class="github-btn" href="{{ route('github.login') }}">
+        <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
+            <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8a8.003 8.003 0 0 0 5.47 7.59c.4.07.55-.17.55-.38
+        0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01
+        1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95
+        0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82a7.658 7.658 0 0 1 2-.27c.68 0
+        1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82
+        1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01
+        1.93-.01 2.2 0 .21.15.46.55.38A8.003 8.003 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+            </path>
+        </svg>
+        Login with GitHub
+    </a>
+
+    <br>
 
 
+
+
+    @if (session('user'))
+        <div>
+
+            <img src="{{ session('user')->Pro_Url }}" width="100px" alt="">
+            <h2>Welcome, {{ session('user')->name }}</h2>
+            <p>Email: {{ session('user')->email }}</p>
+        </div>
+    @endif
+
+
+
+
+</body>
+
+</html>
+
+
+-------------------------------------------------------------------------------
+Add this line in users migraiton
+------------------------------------------------------------------------------
+
+$table->string('Pro_Url')->nullable();
+$table->string('github_id');
 
 
 
