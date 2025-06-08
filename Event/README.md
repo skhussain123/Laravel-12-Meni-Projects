@@ -188,46 +188,57 @@ class WelcomeMail extends Mailable
 ### 6. views/email.blade.php
 ```bash
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Welcome</title>
-</head>
-<body>
-    <h1>Welcome, {{ $user->name }}!</h1>
-    <p>Thanks for joining our platform. We’re excited to have you!</p>
-</body>
-</html>
-
-```
-
-### 7. welcome.blade.php
-```bash
-<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>User Registration</title>
+
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+<body class="bg-light">
 
-<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
 
-    {{-- //user register from  --}}
+                <div class="card shadow-lg">
+                    <div class="card-header text-center bg-primary text-white">
+                        <h4>User Registration</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('register') }}" method="POST">
+                            @csrf
 
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" name="name" id="name" value="hussain" placeholder="Enter your name">
+                            </div>
 
-    <form action="{{ route('register') }}" method="POST">
-        @csrf
-        <input type="name" placeholder="Name" value="hussain" name="name" id="">
-        <input type="email" placeholder="Email" value="hk0527075@gmail.com" name="email" id="">
-        <input type="password" placeholder="Password" value="hussain1234" name="password" id="">
-        <input type="submit" value="register">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email address</label>
+                                <input type="email" class="form-control" name="email" id="email" value="hk0527075@gmail.com" placeholder="Enter your email">
+                            </div>
 
-    </form>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" name="password" id="password" value="hussain1234" placeholder="Enter your password">
+                            </div>
 
+                            <button type="submit" class="btn btn-primary w-100">Register</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (optional for dynamic behavior) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>
+
 
 ```
