@@ -10,6 +10,17 @@ php artisan make:Controller HomeController
 
 ```
 
+```bash
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=xxxxxxxxxxxxxxxxx
+MAIL_PASSWORD=xxxxxxxxxxxxxxxxx
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=xxxxxxxxxxxxxx
+MAIL_FROM_NAME="Your Name"
+```
+
 ###  File Locations
 
 ```bash
