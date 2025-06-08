@@ -4,10 +4,10 @@
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=hussainkhan2042@gmail.com
-MAIL_PASSWORD=nunwwjxkzgovuogh
+MAIL_USERNAME=xxxxxxxxxxxxxxxxxxx
+MAIL_PASSWORD=xxxxxxxxxxxxxxxx
 MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=hussainkhan2042@gmail.com
+MAIL_FROM_ADDRESS=xxxxxxxxxxxxxxxxxxxx
 MAIL_FROM_NAME="Your Name"
 ```
 
