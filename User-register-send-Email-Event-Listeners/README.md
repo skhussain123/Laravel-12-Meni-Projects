@@ -210,7 +210,7 @@ class WelcomeMail extends Mailable
 ```
 
 
-### 6. views/email.blade.php
+### 6. views/welcome.blade.php
 ```bash
 <!DOCTYPE html>
 <html lang="en">
@@ -281,3 +281,5 @@ class WelcomeMail extends Mailable
 
 
 ```
+
+### 7. views/email.blade.php
