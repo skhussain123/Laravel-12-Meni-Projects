@@ -18,6 +18,8 @@ It can also slow the application down (because it has to gather and render data)
 * ConfigCollector: Display the values from the config files. (disabled by default)
 * CacheCollector: Display all cache events. (disabled by default)
 
+https://github.com/barryvdh/laravel-debugbar
+
 ```bash
 composer require barryvdh/laravel-debugbar --dev
 ```
