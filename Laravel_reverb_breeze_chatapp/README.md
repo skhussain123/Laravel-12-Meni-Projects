@@ -264,44 +264,102 @@ php artisan make:livewire ChatComponent
     <!-- Chat Messages -->
     <div class="chat-box">
         @foreach ($messages as $message)
+            @php
+                $isFile = Str::startsWith($message['message'], 'chat_files/');
+                $fileExtension = pathinfo($message['message'], PATHINFO_EXTENSION);
+            @endphp
+
             @if ($message['sender'] != auth()->user()->name)
                 <div class="message left">
-                    {{ $message['sender'] }} : {{ $message['message'] }}
+                    {{ $message['sender'] }} :
+                    @if ($isFile)
+                        <div class="flex items-center gap-2 text-sm text-gray-800">
+                            📎 {{ basename($message['message']) }}
+                            <a href="{{ asset('storage/' . $message['message']) }}" download
+                                class="text-blue-600 underline ml-2">
+                                Download
+                            </a>
+                        </div>
+                    @else
+                        {{ $message['message'] }}
+                    @endif
                     <p style="font-size: 12px">{{ $message['created_at'] }}</p>
                 </div>
             @else
                 <div class="message right">
-                    {{ $message['message'] }} <br>
+                    @if ($isFile)
+                        <div class="flex items-center gap-2 text-sm text-gray-800">
+                            📎 {{ basename($message['message']) }}
+                            <a href="{{ asset('storage/' . $message['message']) }}" download
+                                class="text-blue-600 underline ml-2">
+                                Download
+                            </a>
+                        </div>
+                    @else
+                        {{ $message['message'] }}
+                    @endif
+
+
+                    <br>
                     <p style="font-size: 12px">{{ $message['created_at'] }}</p>
                 </div>
             @endif
 
-
-            <br>
-            <br>
-            <br>
-            <br>
+            <br><br><br><br>
         @endforeach
+
+
+
+        <!-- 👇 File preview will show here -->
+        <div class="show-file px-4 py-2">
+            @if ($file)
+                <div class="flex justify-center">
+                    <div class="bg-green-100 border border-green-400 rounded-lg p-3 max-w-xs w-fit shadow-md relative">
+                        <!-- File Name -->
+                        <div class="text-sm text-green-800 truncate">
+                            📎 {{ $file->getClientOriginalName() }}
+                        </div>
+
+                        <!-- Remove Button -->
+                        <button wire:click="removeFile" type="button"
+                            class="absolute top-1 right-1 text-red-600 font-bold text-sm">
+                            &times;
+                        </button>
+
+                    </div>
+                </div>
+            @endif
+        </div>
+
+
     </div>
 
+
     <!-- Footer -->
-    <form wire:submit.prevent="sendMessage">
+    <form wire:submit.prevent="sendMessage" enctype="multipart/form-data">
         <div class="footer">
             @csrf
 
             <!-- Emoji Button -->
-            <button type="button" id="emoji-toggle" class="send-btn">
-                😊
-            </button>
+            <button type="button" id="emoji-toggle" class="send-btn">😊</button>
 
-            <!-- Emoji Picker (Initially Hidden) -->
+            <!-- Emoji Picker -->
             <emoji-picker id="emoji-picker"
                 style="position: absolute; bottom: 60px; left: 10px; display: none; z-index: 999;"></emoji-picker>
 
-            <!-- Textarea -->
-            <textarea class="textarea" wire:model="message" rows="1" placeholder="Message..." id="message-textarea"></textarea>
-            
-            <!-- Send Button -->
+            <!-- 📎 File Input -->
+            <label class="send-btn" style="margin-right: 8px;">
+                📎
+                <input type="file" wire:model="file" style="display: none;">
+            </label>
+
+            <!-- 📝 Textarea -->
+            <textarea class="textarea" wire:model.defer="message" rows="1" placeholder="Message..." id="message-textarea"
+                @if ($file) disabled @endif></textarea>
+
+
+
+            <!-- 📤 Send Button -->
             <button class="send-btn" type="submit">
                 <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="#38a169">
                     <path
@@ -310,6 +368,7 @@ php artisan make:livewire ChatComponent
             </button>
         </div>
     </form>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -340,7 +399,6 @@ php artisan make:livewire ChatComponent
 
 
 </div>
-
 ```
 
 ### Create Event For BroatCasting
@@ -423,15 +481,19 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use App\Events\MessageSentEvent;
 use Livewire\Attributes\On;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 class ChatComponent extends Component
 {
+    use WithFileUploads;
 
     public $user;
     public $sender_id;
     public $receiver_id;
     public $message;
     public $messages = [];
+    public $file;
+
 
 
     public function render()
@@ -462,20 +524,37 @@ class ChatComponent extends Component
         $this->user = User::findOrFail($user_id);
     }
 
+    public function removeFile()
+    {
+        $this->file = null;
+    }
+
+
     public function sendMessage()
     {
         $chatMessage = new Message();
         $chatMessage->sender_id = $this->sender_id;
         $chatMessage->receiver_id = $this->receiver_id;
-        $chatMessage->message = $this->message;
+
+        if ($this->file) {
+            // File selected: Upload file and store its path in message column
+            $filename = $this->file->store('chat_files', 'public');
+            $chatMessage->message = $filename;
+
+            $this->file = null;
+        } else {
+            // No file selected: Save plain text message
+            $chatMessage->message = $this->message;
+            $this->message = "";
+        }
+
         $chatMessage->save();
 
         $this->appendChatMessage($chatMessage);
 
         broadcast(new MessageSentEvent($chatMessage))->toOthers();
-
-        $this->message = '';
     }
+
 
     #[On('echo-private:chat-channel.{sender_id},MessageSentEvent')]
     public function listenForMessage($event)
@@ -495,12 +574,24 @@ class ChatComponent extends Component
             'message' => $message->message,
             'sender' => $message->sender->name,
             'receiver' => $message->receiver->name,
-            'created_at' => $message->created_at->format('h:i A') 
+            'created_at' => $message->created_at->format('h:i A')
 
         ];
     }
 }
 
+```
+
+```bash
+php artisan storage:link
+```
+
+
+#### Make Sure Krna ha ye Command Run krke project test krna hain
+```bash
+php artisan serve
+npm run dev
+php artisan reverb:start --debug
 ```
 
 
