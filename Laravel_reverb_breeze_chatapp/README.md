@@ -140,6 +140,7 @@ php artisan make:livewire ChatComponent
 #### LiveWire/chat-component.blade.php
 ```bash
 <div>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
 
     <style>
         body {
@@ -288,7 +289,19 @@ php artisan make:livewire ChatComponent
         <div class="footer">
             @csrf
 
-            <textarea class="textarea" wire:model="message" rows="1" placeholder="Message..."></textarea>
+            <!-- Emoji Button -->
+            <button type="button" id="emoji-toggle" class="send-btn">
+                😊
+            </button>
+
+            <!-- Emoji Picker (Initially Hidden) -->
+            <emoji-picker id="emoji-picker"
+                style="position: absolute; bottom: 60px; left: 10px; display: none; z-index: 999;"></emoji-picker>
+
+            <!-- Textarea -->
+            <textarea class="textarea" wire:model="message" rows="1" placeholder="Message..." id="message-textarea"></textarea>
+            
+            <!-- Send Button -->
             <button class="send-btn" type="submit">
                 <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="#38a169">
                     <path
@@ -298,9 +311,35 @@ php artisan make:livewire ChatComponent
         </div>
     </form>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const picker = document.getElementById('emoji-picker');
+            const toggle = document.getElementById('emoji-toggle');
+            const textarea = document.getElementById('message-textarea');
+
+            // Toggle emoji picker
+            toggle.addEventListener('click', () => {
+                picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Insert emoji into textarea
+            picker.addEventListener('emoji-click', event => {
+                const emoji = event.detail.unicode;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                textarea.value = text.substring(0, start) + emoji + text.substring(end);
+                textarea.focus();
+                textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+
+                // Manually dispatch input event so Livewire detects change
+                textarea.dispatchEvent(new Event('input'));
+            });
+        });
+    </script>
+
 
 </div>
-
 
 ```
 
