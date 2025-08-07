@@ -263,7 +263,6 @@ class AddCategory extends Component
             $folderId = config('services.google.folder_id');
 
             $uploadedFileIds = [];
-            $uploadedFileThumbnails = [];
 
             $fileName = $this->file->getClientOriginalName();
             $filePath = $this->file->getRealPath();
@@ -291,21 +290,12 @@ class AddCategory extends Component
                         'type' => 'anyone',
                     ]);
 
-                // Get thumbnail link
-                $metaResponse = Http::withToken($accessToken)
-                    ->get("https://www.googleapis.com/drive/v3/files/{$file_id}", [
-                        'fields' => 'thumbnailLink',
-                    ]);
-
-                $thumbnail = $metaResponse->json()['thumbnailLink'] ?? null;
-                $uploadedFileThumbnails[] = $thumbnail;
-
+    
                 // Save to database
                 $category = new Category();
                 $category->category_name = $this->name;
                 $category->category_image = $fileName;
                 $category->category_fileid = $file_id;
-                $category->category_thumbnail = $thumbnail;
                 $category->status = 'Active';
                 $category->save();
             }
@@ -381,9 +371,97 @@ public function DeleteFile($id, $proid, $fileid)
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
-    
-        
+           
 }
+
+// update
+public function updateCategory(Request $request)
+{
+    $request->validate([
+        'categoryName' => 'required|string|max:255',
+        'file_id' => 'required', // Old file_id
+        'category_id' => 'required',
+    ]);
+
+    $category = Category::findOrFail($request->category_id);
+
+    $accessToken = $this->token(); // Assuming you have this method
+    $folderId = config('services.google.folder_id');
+
+    if ($request->hasFile('file')) {
+        $file = $request->file('file');
+        $fileName = $file->getClientOriginalName();
+        $filePath = $file->getRealPath();
+
+        // Upload to Google Drive
+        $metadata = [
+            'name' => $fileName,
+            'parents' => [$folderId],
+        ];
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $accessToken,
+        ])
+            ->attach('metadata', json_encode($metadata), 'metadata.json')
+            ->attach('file', file_get_contents($filePath), $fileName)
+            ->post('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+
+        if ($response->successful()) {
+            $newFileId = json_decode($response->body())->id;
+
+            // Make file public
+            Http::withToken($accessToken)
+                ->post("https://www.googleapis.com/drive/v3/files/{$newFileId}/permissions", [
+                    'role' => 'reader',
+                    'type' => 'anyone',
+                ]);
+
+            // Get thumbnail
+            $metaResponse = Http::withToken($accessToken)
+                ->get("https://www.googleapis.com/drive/v3/files/{$newFileId}", [
+                    'fields' => 'thumbnailLink',
+                ]);
+
+            $thumbnail = $metaResponse->json()['thumbnailLink'] ?? null;
+
+            // Optional: Delete old file
+            $oldFileId = $request->file_id;
+            if (!empty($oldFileId)) {
+                Http::withToken($accessToken)
+                    ->delete("https://www.googleapis.com/drive/v3/files/{$oldFileId}");
+            }
+
+            // Update database
+            $category->category_name = $request->categoryName;
+            $category->category_fileid = $newFileId;
+            $category->category_image = $fileName;
+            $category->category_thumbnail = $thumbnail;
+            $category->save();
+
+            return response()->json([
+                'message' => 'Category updated successfully',
+                'file_id' => $newFileId,
+                'thumbnail' => $thumbnail,
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'File upload failed',
+                'error' => $response->body(),
+            ], 500);
+        }
+    }
+
+    // If no file was uploaded, just update name
+    $category->category_name = $request->categoryName;
+    $category->save();
+
+    return response()->json(['message' => 'Category updated (no image change)']);
+}
+
+
+
+
+
 
 ```
 
