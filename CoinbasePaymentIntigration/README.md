@@ -33,8 +33,15 @@ JCQ7OCXRYMIjkpOUMD5otExYRmZz6JigUQ==
 -----END EC PRIVATE KEY-----
 EOD;
         # test mode
-        $requestHost = 'api-public.sandbox.coinbase.com';
-        # $requestHost = 'api.coinbase.com'; //production level
+        # $requestHost = 'api-public.sandbox.coinbase.com';
+
+        #production Level
+        $requestHost = 'api.coinbase.com'; 
+      
+
+        # agr 'api.coinbase.com'; ye use krgy to live coinbase sy syystem run hora hoga or payemnt live mode me hongi
+        # agr ye use krgy to sendbox sy connect hongy or payment testmode me hongi sendbox sy api-public.sandbox.coinbase.com
+
 
         // URI construct karein
         $uri = "$requestMethod $requestHost$requestPath";
