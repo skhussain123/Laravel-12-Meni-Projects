@@ -11,10 +11,10 @@
 * Set url https://ideapromptly.com
 * Copy Secret key
 
-![ss.png](image_url)
+![Alt text](ss.png)
 
 
 ##### then Click See Profile and set store name url and profile
-![ss2.png](image_url)
+![Alt text](ss2.png)
 
 
